@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Leaflet Web Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    body, html {margin: 0; padding: 0; height: 100%; font-family: 'Poppins', sans-serif; background: #ECF0F1;}
+    .header {background: #2C3E50; color: white; text-align: center; padding: 15px; font-size: 22px; font-weight: bold; transition: background 0.3s, transform 0.2s; border-radius: 0 0 15px 15px;}
+    .header:hover {background: #34495E; transform: scale(1.02);}
+    #map {width: 100%; height: calc(100vh - 70px); border-radius: 15px; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);}
+    .leaflet-control.toolbox {background: rgba(255, 255, 255, 0.85); padding: 12px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); backdrop-filter: blur(10px);}
+    .toolbox button {display: block; margin: 8px; width: 130px; padding: 10px; cursor: pointer; background: #2C3E50; color: white; border: none; border-radius: 8px; text-align: center; font-size: 14px; font-weight: bold; transition: background 0.3s, transform 0.2s;}
+    .toolbox button:hover {background: #E67E22; transform: scale(1.05);}
+  </style>
+</head>
+<body>
+  <div class="header">
+    Leaflet Web Map | Mirdha Dhea Permata (23/512640/TK/56337)
+  </div>
+
+  <div id="map"></div>
+
+  <script>
+    // Inisialisasi peta
+    var map = L.map('map').setView([-7.79558, 110.36949], 12);
+
+    // Layer Peta
+    var streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
+    });
+    var satelliteMap = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+      attribution: '&copy; <a href="https://www.google.com/maps">Google Satellite</a>'
+    });
+    var contourMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+      maxZoom: 17,
+      attribution: 'Map data: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> contributors'
+    });
+    var thematicMap = L.tileLayer('https://services.terrascope.be/wmts/v2?layer=WORLDCOVER_2021_MAP&style=&tilematrixset=EPSG:3857&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:3857:{z}&TileCol={x}&TileRow={y}&TIME=2022-10-31', {
+      attribution: '© ESA WorldCover 2021 | Contains modified Copernicus Sentinel data (2021)'
+    });
+    streetMap.addTo(map); 
+    // Layer control
+    var baseMaps = {
+      "🛣️ Peta Dasar": streetMap,
+      "🛰️ Peta Satelit": satelliteMap,
+      "⛰️ Peta Topografi": contourMap,
+       "🌱 Peta Tematik": thematicMap
+    };
+    L.control.layers(baseMaps).addTo(map);
+
+    // Toolbox Panel
+    var toolbox = L.control({ position: 'topright' });
+    toolbox.onAdd = function () {
+      var div = L.DomUtil.create('div', 'leaflet-control toolbox');
+      div.innerHTML = `
+        <button onclick="map.zoomIn()">🔍 Zoom In</button>
+        <button onclick="map.zoomOut()">🔎 Zoom Out</button>
+        <button onclick="resetView()">🔄 Reset</button>
+        <button onclick="toggleFullScreen()">🖥️ Fullscreen</button>
+        <button onclick="getUserLocation()">📍 Lokasi Saya</button>
+      `;
+      return div;
+    };
+    toolbox.addTo(map);
+    // Fullscreen
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+    // Reset View
+    function resetView() {
+      map.setView([-7.79558, 110.36949], 12);
+    }
+    // Lokasi User
+    function getUserLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function (position) {
+          var lat = position.coords.latitude;
+          var lon = position.coords.longitude;
+          L.marker([lat, lon], { icon: customIcon }).addTo(map)
+            .bindPopup("<b>Lokasi Anda</b>").openPopup();
+          map.setView([lat, lon], 14);
+        }, function () {
+          alert("Gagal mendapatkan lokasi.");
+        });
+      } else {
+        alert("Geolocation tidak didukung di browser ini.");
+      }
+    }
+    // Icon
+    var customIcon = L.icon({
+      iconUrl: 'https://cdn-icons-png.flaticon.com/512/447/447031.png',
+      iconSize: [40, 40],
+      iconAnchor: [20, 40],
+      popupAnchor: [0, -35]
+    });
+
+    // Marker: Teknik Geodesi UGM
+    L.marker([-7.763951, 110.37290], { icon: customIcon }).addTo(map)
+      .bindPopup("<b>Teknik Geodesi UGM</b><br>Universitas Gadjah Mada");
+    // Marker: Perpustakaan Pusat
+    L.marker([ -7.768259, 110.378750], { icon: customIcon }).addTo(map)
+      .bindPopup("<b>Perpustakaan Pusat</b><br>Universitas Gadjah Mada");
+    // Marker: Kost Mirdha
+    L.marker([-7.763325, 110.384997], { icon: customIcon }).addTo(map)
+      .bindPopup("<b>Kost Mirdha</b><br>Tempat tinggal");
+  </script>
+</body>
+</html>
